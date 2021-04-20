@@ -6,11 +6,13 @@ import React, { useState } from "react";
 class TodoItem {
   id; // ID
   content; // 待办事项的内容
+  complete; // 待办事项是否完成
   match; // 待办事项是否被筛选出来
 
   constructor(content) {
     this.id = Math.random(); // 使用随机数来作为ID，只要不重复就好
     this.content = content;
+    this.complete = false;
     this.match = true;
   }
 }
@@ -56,6 +58,20 @@ function App() {
     }
   };
 
+  /**
+   * 切换完成与否的状态
+   * @param {number} id
+   */
+  const toggleComplete = (id) => {
+    const newTodoItems = todoItems.map((item) => {
+      if (item.id === id) {
+        item.complete = !item.complete;
+      }
+      return item;
+    });
+    settodoItems(newTodoItems);
+  };
+
   return (
     <div>
       <input
@@ -90,9 +106,19 @@ function App() {
             .filter((item) => item.match)
             .map((item) => (
               <tr key={item.id}>
-                <td>{item.content}</td>
+                <td
+                  style={{
+                    textDecoration: item.complete ? "line-through" : "none",
+                  }}
+                >
+                  {item.content}
+                </td>
 
-                <td>按钮</td>
+                <td>
+                  <button onClick={() => toggleComplete(item.id)}>
+                    {item.complete ? "未完成" : "完成"}
+                  </button>
+                </td>
               </tr>
             ))}
         </tbody>
