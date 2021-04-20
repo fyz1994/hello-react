@@ -6,16 +6,19 @@ import React, { useState } from "react";
 class TodoItem {
   id; // ID
   content; // 待办事项的内容
+  match; // 待办事项是否被筛选出来
 
   constructor(content) {
     this.id = Math.random(); // 使用随机数来作为ID，只要不重复就好
     this.content = content;
+    this.match = true;
   }
 }
 
 function App() {
   const [todoItems, settodoItems] = useState([]); // 存放待办事项数组
   const [newTodoContent, setnewTodoContent] = useState(""); //存放当前 新输入待新增 的待办事项
+  const [keyword, setkeyword] = useState(""); //搜索的关键字
 
   /**
    * 把一条新输入的待办事项内容添加到待办事项列表中
@@ -39,6 +42,20 @@ function App() {
     }
   };
 
+  /**
+   * 过滤待办事项
+   * @param {object} e 事件
+   */
+  const handleFilter = (e) => {
+    if (e.code === "Enter") {
+      const newTodoItems = todoItems.map((item) => {
+        item.match = item.content.indexOf(keyword) > -1;
+        return item;
+      });
+      settodoItems(newTodoItems);
+    }
+  };
+
   return (
     <div>
       <input
@@ -49,11 +66,37 @@ function App() {
         onKeyUp={enter2Add}
       />
 
-      <ul>
-        {todoItems.map((item) => (
-          <li key={item.id}>{item.content}</li>
-        ))}
-      </ul>
+      <table>
+        <caption>
+          <span>待办事项列表</span>
+
+          <input
+            placeholder="输入关键字搜索待办事项"
+            value={keyword}
+            onChange={(e) => setkeyword(e.target.value)}
+            onKeyUp={handleFilter}
+          />
+        </caption>
+
+        <thead>
+          <tr>
+            <th>待办事项</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {todoItems
+            .filter((item) => item.match)
+            .map((item) => (
+              <tr key={item.id}>
+                <td>{item.content}</td>
+
+                <td>按钮</td>
+              </tr>
+            ))}
+        </tbody>
+      </table>
     </div>
   );
 }
