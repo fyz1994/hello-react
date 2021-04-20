@@ -1,35 +1,57 @@
 import React, { useState } from "react";
 
-function App() {
-  const [todoItems, settodoItems] = useState([]);
-  const [newItem, setnewItem] = useState({});
+/**
+ * 待办事项的类
+ */
+class TodoItem {
+  id; // ID
+  content; // 待办事项的内容
 
-  const storeTodoItem = (e) => {
-    const value = e.target.value;
-    setnewItem({
-      content: value,
-      id: Array.from(todoItems).length,
+  constructor(content) {
+    this.id = Math.random(); // 使用随机数来作为ID，只要不重复就好
+    this.content = content;
+  }
+}
+
+function App() {
+  const [todoItems, settodoItems] = useState([]); // 存放待办事项数组
+  const [newTodoContent, setnewTodoContent] = useState(""); //存放当前 新输入待新增 的待办事项
+
+  /**
+   * 把一条新输入的待办事项内容添加到待办事项列表中
+   * @param {string} todoContent 待办事项内容
+   */
+  const addTodoItem = (todoContent) => {
+    const newTodoItem = new TodoItem(todoContent);
+    settodoItems((pre) => {
+      return [...pre, newTodoItem];
     });
   };
 
-  const addTodoItem = () => {
-    // 把 newItem 放到 todoItems
-    const copyTodoItems = Array.from(todoItems);
-    copyTodoItems.push(newItem);
-
-    settodoItems(copyTodoItems);
+  /**
+   * 回车时触发存储一条新的待办事项到列表中
+   * @param {object} e 事件
+   */
+  const enter2Add = (e) => {
+    if (e.code === "Enter") {
+      addTodoItem(newTodoContent);
+      setnewTodoContent("");
+    }
   };
 
   return (
     <div>
-      <input onChange={storeTodoItem} />
-      <button onClick={addTodoItem}>添加待办事项</button>
+      <input
+        style={{ width: 300 }}
+        placeholder="请输入待办事项，回车提交"
+        value={newTodoContent}
+        onChange={(e) => setnewTodoContent(e.target.value)}
+        onKeyUp={enter2Add}
+      />
 
       <ul>
-        {todoItems.map((todoItem) => (
-          <li>
-            {todoItem.id}、{todoItem.content}
-          </li>
+        {todoItems.map((item) => (
+          <li key={item.id}>{item.content}</li>
         ))}
       </ul>
     </div>
