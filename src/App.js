@@ -72,6 +72,15 @@ function App() {
     settodoItems(newTodoItems);
   };
 
+  /**
+   * 删除一条待办事项
+   * @param {number} id
+   */
+  const handleDelete = (id) => {
+    const newTodoItems = todoItems.filter((item) => item.id !== id);
+    settodoItems(newTodoItems);
+  };
+
   return (
     <div>
       <input
@@ -115,6 +124,7 @@ function App() {
                 </td>
 
                 <td>
+                  <button onClick={() => handleDelete(item.id)}>删除</button>
                   <button onClick={() => toggleComplete(item.id)}>
                     {item.complete ? "未完成" : "完成"}
                   </button>
