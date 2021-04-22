@@ -1,175 +1,130 @@
 import React, { useState } from "react";
+import MyInput from "./components/MyInput.jsx";
+import TodoList from "./components/TodoList.jsx";
 
-/**
- * 待办事项的类
- */
+import "./App.css";
+
+// 定义待办事项的类
 class TodoItem {
-  id; // ID
-  content; // 待办事项的内容
-  complete; // 待办事项是否完成
-  match; // 待办事项是否被筛选出来
-  editing; // 待办事项是否处于被编辑状态
+  id; // id
+  content; // 内容
+  complete; // 是否完成
+  edit; // 是否处于编辑状态
+  show; // 是否显示（用于查询功能）
 
   constructor(content) {
-    this.id = Math.random(); // 使用随机数来作为ID，只要不重复就好
+    this.id = Math.random(); // id使用随机数，保证每个id唯一
     this.content = content;
     this.complete = false;
-    this.match = true;
-    this.editing = false;
+    this.edit = false;
+    this.show = true;
   }
 }
 
 function App() {
-  const [todoItems, settodoItems] = useState([]); // 存放待办事项数组
-  const [newTodoContent, setnewTodoContent] = useState(""); //存放当前 新输入待新增 的待办事项
-  const [keyword, setkeyword] = useState(""); //搜索的关键字
-  const [curEditContent, setcurEditContent] = useState(""); // 存储编辑框中的文本内容
+  const [todoItems, settodoItems] = useState([]);
 
   /**
-   * 把一条新输入的待办事项内容添加到待办事项列表中
-   * @param {string} todoContent 待办事项内容
+   * 新增一条待办事项
    */
-  const addTodoItem = (todoContent) => {
-    const newTodoItem = new TodoItem(todoContent);
-    settodoItems((pre) => {
-      return [...pre, newTodoItem];
+  const addTodoItem = (content) => {
+    const newTodoItem = new TodoItem(content);
+    settodoItems((preItem) => {
+      return [...preItem, newTodoItem];
     });
   };
 
   /**
-   * 回车时触发存储一条新的待办事项到列表中
-   * @param {object} e 事件
+   * 当用户输入编辑内容完毕，点击提交按钮时
+   * @param {number} id 当前待办事项的id
    */
-  const enter2Add = (e) => {
-    if (e.code === "Enter") {
-      addTodoItem(newTodoContent);
-      setnewTodoContent("");
-    }
-  };
-
-  /**
-   * 过滤待办事项
-   * @param {object} e 事件
-   */
-  const handleFilter = (e) => {
-    if (e.code === "Enter") {
-      const newTodoItems = todoItems.map((item) => {
-        item.match = item.content.indexOf(keyword) > -1;
-        return item;
-      });
-      settodoItems(newTodoItems);
-    }
-  };
-
-  /**
-   * 切换完成与否的状态
-   * @param {number} id
-   */
-  const toggleComplete = (id) => {
-    const newTodoItems = todoItems.map((item) => {
-      if (item.id === id) {
-        item.complete = !item.complete;
+  const handleEditSubmit = (id, newContent) => {
+    let copyTodoItems = Array.from(todoItems);
+    copyTodoItems = copyTodoItems.map((curItem) => {
+      if (curItem.id === id) {
+        curItem.content = newContent;
+        curItem.edit = false;
       }
-      return item;
+      return curItem;
     });
-    settodoItems(newTodoItems);
+    settodoItems(copyTodoItems);
   };
 
   /**
-   * 删除一条待办事项
-   * @param {number} id
+   * 当用户点击删除按钮时
+   * @param {number} id 当前待办事项的id
    */
   const handleDelete = (id) => {
-    const newTodoItems = todoItems.filter((item) => item.id !== id);
-    settodoItems(newTodoItems);
+    let copyTodoItems = Array.from(todoItems);
+    copyTodoItems = copyTodoItems.filter((curItem) => {
+      return curItem.id !== id;
+    });
+    settodoItems(copyTodoItems);
   };
 
   /**
-   * 切换编辑状态
-   * @param {object} 待办事项对象
+   * 当用户点击完成/未完成按钮时
+   * @param {number} id 当前待办事项的id
    */
-  const toggleEditing = (todoItem) => {
-    const { id, content } = todoItem; //解构待办事项
-    const newTodoItems = todoItems.map((item) => {
-      if (item.id === id) {
-        if (item.editing) {
-          // 如果当前处于编辑状态，说明此刻点击的是“提交按钮”，就用编辑框中输入的内容来更新对应那一条的待办事项
-          item.content = curEditContent;
-        } else {
-          // 如果当前处于展示状态，说明此刻点击的是“编辑按钮”，正要开始做编辑，那就用这一条待办事项的原本内容来初始化编辑框
-          setcurEditContent(content);
-        }
-        item.editing = !item.editing;
+  const handleComplete = (id) => {
+    let copyTodoItems = Array.from(todoItems);
+    copyTodoItems = copyTodoItems.map((curItem) => {
+      if (curItem.id === id) {
+        curItem.complete = !curItem.complete;
       }
-      return item;
+      return curItem;
     });
-    settodoItems(newTodoItems);
+    settodoItems(copyTodoItems);
+  };
+
+  /**
+   * 当用户按下回车键查询待办事项时
+   * @param {*} e onClick传递的事件参数
+   */
+  const handleSearch = (content) => {
+    let copyTodoItems = Array.from(todoItems);
+    if (content !== "") {
+      copyTodoItems = copyTodoItems.map((curItem) => {
+        curItem.show = curItem.content.indexOf(content) !== -1;
+        return curItem;
+      });
+    } else {
+      copyTodoItems = copyTodoItems.map((curItem) => {
+        curItem.show = true; // 将每个待办事项的show恢复为默认状态true
+        return curItem;
+      });
+    }
+    settodoItems(copyTodoItems);
+  };
+
+  /**
+   * 当用户点击编辑按钮时
+   * @param {number} id 当前待办事项的id
+   */
+  const handleClickEditBtn = (id) => {
+    let copyTodoItems = Array.from(todoItems);
+    copyTodoItems = copyTodoItems.map((curItem) => {
+      if (curItem.id === id) {
+        curItem.edit = true;
+      }
+      return curItem;
+    });
+    settodoItems(copyTodoItems);
   };
 
   return (
-    <div>
-      <input
-        style={{ width: 300 }}
-        placeholder="请输入待办事项，回车提交"
-        value={newTodoContent}
-        onChange={(e) => setnewTodoContent(e.target.value)}
-        onKeyUp={enter2Add}
+    <div className="todo-items-page">
+      <MyInput placeholder="添加待办事项" onClickEnter={addTodoItem} />
+
+      <MyInput placeholder="搜索待办事项" onClickEnter={handleSearch} />
+
+      <TodoList
+        todoItems={todoItems}
+        onClickEditBtn={handleClickEditBtn}
+        onClickDeleteBtn={handleDelete}
+        onClickCompleteBtn={handleComplete}
+        onEditSubmit={handleEditSubmit}
       />
-
-      <table>
-        <caption>
-          <span>待办事项列表</span>
-
-          <input
-            placeholder="输入关键字搜索待办事项"
-            value={keyword}
-            onChange={(e) => setkeyword(e.target.value)}
-            onKeyUp={handleFilter}
-          />
-        </caption>
-
-        <thead>
-          <tr>
-            <th>待办事项</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {todoItems
-            .filter((item) => item.match)
-            .map((item) => (
-              <tr key={item.id}>
-                <td>
-                  {item.editing ? (
-                    <input
-                      value={curEditContent}
-                      onChange={(e) => setcurEditContent(e.target.value)}
-                    />
-                  ) : (
-                    <span
-                      style={{
-                        textDecoration: item.complete ? "line-through" : "none",
-                      }}
-                    >
-                      {item.content}
-                    </span>
-                  )}
-                </td>
-
-                <td>
-                  <button onClick={() => toggleEditing(item)}>
-                    {item.editing ? "提交" : "编辑"}
-                  </button>
-                  <button onClick={() => handleDelete(item.id)}>删除</button>
-                  <button onClick={() => toggleComplete(item.id)}>
-                    {item.complete ? "未完成" : "完成"}
-                  </button>
-                </td>
-              </tr>
-            ))}
-        </tbody>
-      </table>
     </div>
   );
 }
